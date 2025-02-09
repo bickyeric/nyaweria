@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat</title>
+
+    <style type="text/css">
+        .form {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-color: #f9f9f9;
+            border-top: 1px solid #78b8ef;
+            padding: 5px 10px;
+        }
+        .form .placeholder,
+        .form .input-message,
+        .form button {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form .input-message {
+            padding: 7px;
+            border: 1px solid #ecebeb;
+            border-radius: 4px;
+            width: -webkit-fill-available;
+        }
+        .form button {
+            width: 100%;
+            color: white;
+            padding: 7px 10px;
+            border-radius: 4px;
+            background-color: #78b8ef;
+            border: 1px solid #5a9ed8;
+        }
+        .container {
+            margin-bottom: 50px;
+        }
+        .container p {
+            display: block;
+        }
+    </style>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+</head>
+<body>
+    <div class="form">
+        <form onsubmit="app.doSendMessage(); return false;">
+            <div class="placeholder">
+                <label>Hello <b class="username"></b>. Say something:</label>
+            </div>
+            <input id="form-amount" class="input-message" type="text" value="500">
+            <input id="form-text" class="input-message" type="text" placeholder="Enter message">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        var app = {}
+        app.ws = undefined
+
+        var formText = document.getElementById("form-text")
+        var formAmount = document.getElementById("form-amount")
+
+        app.doSendMessage = function () {
+            app.ws.send(JSON.stringify({
+                Amount: formAmount.value,
+                Message: formText.value
+            }));
+
+            formText.value = ''
+        }
+
+        app.init = function () {
+            if (!(window.WebSocket)) {
+                alert('Your browser does not support WebSocket')
+                return
+            }
+
+            var name = prompt("Siapa yang mau ngasih")||"No name"
+            document.querySelector('.username').innerText = name
+
+            app.container = document.querySelector('.container')
+
+            app.ws = new WebSocket("ws://localhost:8080/ws?username=" + name)
+
+            app.ws.onopen = function() {
+                console.log("connected to server")
+            }
+
+            app.ws.onmessage = function (event) {
+                console.log(event)
+            }
+
+            app.ws.onclose = function () {
+                console.log("disconnected")
+            }
+        }
+
+        window.onload = app.init
+    </script>
+</body>
+</html>

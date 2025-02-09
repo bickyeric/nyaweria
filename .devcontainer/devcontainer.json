@@ -1,0 +1,34 @@
+{
+  "name": "Nyaweria",
+  "service": "app",
+  "workspaceFolder": "/workspaces",
+  "dockerComposeFile": "docker-compose.yml",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  }
+
+  // Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+  // "image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
+
+  // Features to add to the dev container. More info: https://containers.dev/features.
+  // "features": {},
+
+  // "forwardPorts": [3000],
+
+  // "portsAttributes": {
+  //   "3000": {
+  //     "label": "Hello Remote World",
+  //     "onAutoForward": "notify"
+  //   }
+  // },
+
+  // "postCreateCommand": "yarn install"
+
+  // "remoteUser": "root"
+}
