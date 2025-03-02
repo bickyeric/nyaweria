@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Alert</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
 </head>
+
 <body>
-    <div id="modal" class="container flex justify-center bg-blue-500 hidden">
-        <div>
-            <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXh1ZGcwdHUwaHh6Yml4eTBkNXpidHgxdjB6dGE2Y2J0MWNiYXVhaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/13Nc3xlO1kGg3S/giphy.gif" alt="Random gif">
-            <div class="flex justify-center">
-                <div>
-                    <div id="title">title</div>
-                    <div id="text">text</div>
+    <div class="p-6">
+        <div id="modal" class="flex justify-center bg-blue-500 border rounded-xl max-w-full p-6 hidden">
+            <div>
+                <img class="rounded-lg" src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXh1ZGcwdHUwaHh6Yml4eTBkNXpidHgxdjB6dGE2Y2J0MWNiYXVhaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/13Nc3xlO1kGg3S/giphy.gif"
+                    alt="Random gif">
+                <div class="flex justify-center">
+                    <div>
+                        <div id="title" class="text-3xl">title</div>
+                        <div id="text" class="text-3xl">text</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -27,9 +32,11 @@
         var titleElement = document.getElementById("title")
         var textElement = document.getElementById("text")
 
+        var reconnectCounter = 0
+
         app.print = function (data) {
-            titleElement.textContent = `${data.From} baru saja memberikan Rp${data.Amount}`
-            textElement.textContent = data.Message
+            titleElement.textContent = `${data.from} baru saja memberikan Rp${data.amount}`
+            textElement.textContent = data.message
             modal.classList.remove("hidden")
             var audio = new Audio('https://saweria.co/cutCaching.mp3');
             audio.play();
@@ -49,7 +56,7 @@
 
             app.ws = new WebSocket(`ws://${loc.host}/ws?username=${urlParams.get("username")}`)
 
-            app.ws.onopen = function() {
+            app.ws.onopen = function () {
                 console.log("connected to server as alert")
             }
 
@@ -61,10 +68,17 @@
 
             app.ws.onclose = function () {
                 console.log("alert disconnected")
+
+                setTimeout(() => {
+                    reconnectCounter++
+                    console.log(`${reconnectCounter} trying to reconnect...`)
+                    app.init()
+                }, 5000);
             }
         }
 
         window.onload = app.init
     </script>
 </body>
+
 </html>

@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/bickyeric/nyaweria/entity"
 	"github.com/bickyeric/nyaweria/usecase"
@@ -15,14 +13,11 @@ type DonateHandler struct {
 }
 
 func (*DonateHandler) Index(c echo.Context) error {
-	content, err := os.ReadFile("public/index.html")
-	if err != nil {
-		http.Error(c.Response().Writer, "Could not open requested file", http.StatusInternalServerError)
-		return nil
-	}
+	streamerID := c.Param("streamer_id")
 
-	fmt.Fprintf(c.Response().Writer, "%s", content)
-	return nil
+	return c.Render(http.StatusOK, "index.html", map[string]string{
+		"streamer_id": streamerID,
+	})
 }
 
 func (h *DonateHandler) Donate(c echo.Context) error {
