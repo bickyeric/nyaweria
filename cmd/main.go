@@ -13,6 +13,8 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	e.Static("public/audio", "public/audio")
+
 	e.Renderer = view.NewTemplateRenderer()
 
 	notificationUsecase := usecase.NewNotification()

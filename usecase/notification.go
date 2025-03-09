@@ -2,49 +2,54 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/bickyeric/nyaweria/entity"
 	"github.com/gorilla/websocket"
 )
 
 type Notification interface {
-	Add(ctx context.Context, ws *websocket.Conn, username string) (entity.WebSocketConnection, error)
-	Delete(ctx context.Context, username string)
+	Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketClient, error)
+	Delete(ctx context.Context, username string, conn *entity.WebSocketClient)
 	Send(context.Context, entity.Donation) error
 }
 
 type notification struct {
-	conns map[string]*entity.WebSocketConnection
+	hubs map[string]*entity.Hub
 }
 
-func (u *notification) Add(ctx context.Context, ws *websocket.Conn, username string) (entity.WebSocketConnection, error) {
-	currentConn := entity.NewWebSocketConnection(ws)
-	u.conns[username] = &currentConn
+func (u *notification) Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketClient, error) {
+	currentConn := entity.NewWebSocketClient(ws)
+	if hub, ok := u.hubs[username]; ok {
+		hub.Register <- &currentConn
+	} else {
+		hub := entity.NewHub()
+		go hub.Run()
 
-	return currentConn, nil
+		hub.Register <- &currentConn
+		u.hubs[username] = hub
+	}
+
+	return &currentConn, nil
 }
 
-func (u *notification) Delete(ctx context.Context, username string) {
-	u.conns[username].Close()
-	delete(u.conns, username)
+func (u *notification) Delete(ctx context.Context, username string, conn *entity.WebSocketClient) {
+	if hub, ok := u.hubs[username]; ok {
+		hub.Unregister <- conn
+	}
 }
 
 func (u *notification) Send(ctx context.Context, donation entity.Donation) error {
-	fmt.Println(u.conns)
-
-	con, ok := u.conns[donation.To]
+	hub, ok := u.hubs[donation.To]
 	if !ok {
-		fmt.Println("streamer connection not found!!!")
 		return nil
 	}
 
-	con.SendDonation(donation)
+	hub.Broadcast <- donation
 	return nil
 }
 
 func NewNotification() Notification {
 	return &notification{
-		conns: map[string]*entity.WebSocketConnection{},
+		hubs: map[string]*entity.Hub{},
 	}
 }

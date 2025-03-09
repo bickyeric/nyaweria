@@ -30,7 +30,7 @@ func (h *WebsocketHandler) Handle(c echo.Context) error {
 	// block the request
 	websocketConnection.HandleIO()
 
-	h.notification.Delete(c.Request().Context(), username)
+	h.notification.Delete(c.Request().Context(), username, websocketConnection)
 
 	return nil
 }
