@@ -2,50 +2,7 @@
 <html>
 
 <head>
-    <title>Chat</title>
-
-    <style type="text/css">
-        .form {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background-color: #f9f9f9;
-            border-top: 1px solid #78b8ef;
-            padding: 5px 10px;
-        }
-
-        .form .placeholder,
-        .form .input-message,
-        .form button {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form .input-message {
-            padding: 7px;
-            border: 1px solid #ecebeb;
-            border-radius: 4px;
-            width: -webkit-fill-available;
-        }
-
-        .form button {
-            width: 100%;
-            color: white;
-            padding: 7px 10px;
-            border-radius: 4px;
-            background-color: #78b8ef;
-            border: 1px solid #5a9ed8;
-        }
-
-        .container {
-            margin-bottom: 50px;
-        }
-
-        .container p {
-            display: block;
-        }
-    </style>
+    <title>Dukung {{index . "streamer_name"}} | Nyaweria</title>
 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -53,15 +10,31 @@
 </head>
 
 <body>
-    <div class="form">
-        <form onsubmit="app.doSendMessage(); return false;">
-            <div class="placeholder">
-                <label>Hello <b class="username"></b>. Say something:</label>
+    <div class="flex justify-center pt-50">
+        <div
+            class="w-full max-w-sm bg-white border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <div class="flex justify-end px-4 pt-4"></div>
+            <div class="flex flex-col items-center pb-10">
+                <img class="w-24 h-24 mb-3 rounded-full shadow-lg"
+                    src="{{index . "profile_picture"}}" alt="Bonnie image" />
+                <h5 class="mb-1 text-xl font-medium text-gray-900 dark:text-white">{{index . "streamer_name"}}</h5>
+                <span class="text-sm text-gray-500 dark:text-gray-400 pb-8">{{index . "streamer_description"}}</span>
+                <div class="form">
+                    <div class="pb-8">Halo <b class="username"></b></div>
+                    <form onsubmit="app.doSendMessage(); return false;">
+                        <div class="mb-6">
+                            <label for="form-amount" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Nominal:</label>
+                            <input type="number" id="form-amount" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="5000" required />
+                        </div>
+                        <div class="mb-6">
+                            <label for="form-text" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Pesan:</label>
+                            <input type="text" id="form-text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Enter message">
+                        </div>
+                        <button type="submit" class="inline-flex items-center px-4 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Send</button>
+                    </form>
+                </div>
             </div>
-            <input id="form-amount" class="input-message" type="text" value="500">
-            <input id="form-text" class="input-message" type="text" placeholder="Enter message">
-            <button type="submit">Send</button>
-        </form>
+        </div>
     </div>
 
     <script type="text/javascript">
@@ -77,7 +50,7 @@
                 method: "POST",
                 body: JSON.stringify({
                     from: document.querySelector('.username').innerText,
-                    to: '{{index . "streamer_id"}}',
+                    to: '{{index . "streamer_username"}}',
                     amount: formAmount.value,
                     message: formText.value
                 }),
@@ -92,7 +65,7 @@
         }
 
         app.init = function () {
-            var name = prompt("Siapa yang mau ngasih") || "No name"
+            var name = prompt("Siapa yang mau ngasih") || ""
             document.querySelector('.username').innerText = name
         }
 

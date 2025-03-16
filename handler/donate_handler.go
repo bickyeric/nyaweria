@@ -10,13 +10,22 @@ import (
 
 type DonateHandler struct {
 	donateUsecase usecase.Donate
+	userUsecase   usecase.User
 }
 
-func (*DonateHandler) Index(c echo.Context) error {
-	streamerID := c.Param("streamer_id")
+func (h *DonateHandler) Index(c echo.Context) error {
+	username := c.Param("streamer_username")
+
+	user, err := h.userUsecase.GetByUsername(c.Request().Context(), username)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "user not found")
+	}
 
 	return c.Render(http.StatusOK, "index.html", map[string]string{
-		"streamer_id": streamerID,
+		"streamer_username":    username,
+		"profile_picture":      user.ProfilePicture,
+		"streamer_name":        user.Name,
+		"streamer_description": user.Description,
 	})
 }
 
@@ -35,6 +44,9 @@ func (h *DonateHandler) Donate(c echo.Context) error {
 	return c.JSON(http.StatusOK, entity.ResponseBody{Message: "success giving donation"})
 }
 
-func NewDonateHandler(donateUsecase usecase.Donate) *DonateHandler {
-	return &DonateHandler{donateUsecase: donateUsecase}
+func NewDonateHandler(donateUsecase usecase.Donate, userUsecase usecase.User) *DonateHandler {
+	return &DonateHandler{
+		donateUsecase: donateUsecase,
+		userUsecase:   userUsecase,
+	}
 }

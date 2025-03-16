@@ -24,7 +24,12 @@ func (u *donate) Donate(ctx context.Context, donation entity.Donation) error {
 
 	filename := uuid.New().String()
 
-	audioPath, err := u.speech.CreateSpeechFile(fmt.Sprintf("%s baru saja memberikan %s. %s", donation.From, donation.Amount, donation.Message), filename)
+	giver := "Seseorang"
+	if donation.From != "" {
+		giver = donation.From
+	}
+
+	audioPath, err := u.speech.CreateSpeechFile(fmt.Sprintf("%s baru saja memberikan %s. %s", giver, donation.Amount, donation.Message), filename)
 	if err != nil {
 		return err
 	}

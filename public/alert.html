@@ -37,14 +37,18 @@
         var loc = window.location;
 
         app.print = function (data) {
-            titleElement.textContent = `${data.from} baru saja memberikan Rp${data.amount}`
+            var donationFrom = data.from || "Seseorang"
+
+            titleElement.textContent = `${donationFrom} baru saja memberikan Rp${data.amount}`
             textElement.textContent = data.message
             modal.classList.remove("hidden")
             var audio = new Audio('https://saweria.co/cutCaching.mp3');
+            audio.onended = function() {
+                var audio = new Audio(`http://${loc.host}/${data.audio_path}`);
+                audio.play();
+            }
             audio.play();
 
-            var audio = new Audio(`http://${loc.host}/${data.audio_path}`);
-            audio.play();
             setTimeout(() => {
                 modal.classList.add("hidden")
             }, 3000);
