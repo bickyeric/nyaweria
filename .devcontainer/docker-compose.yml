@@ -8,3 +8,35 @@ services:
     command: sleep infinity
     ports:
       - "8080:8080"
+
+  db:
+    image: postgres:17
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready --dbname=nyaweria_dev
+      interval: 5s
+      timeout: 2s
+      retries: 3
+    environment:
+      POSTGRES_USER: nyaweria_rw
+      POSTGRES_PASSWORD: supersecret123
+      POSTGRES_DB: nyaweria_dev
+
+  db-migrate:
+    image: migrate/migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ../db
+        target: /db
+    entrypoint: migrate
+    command: -source file:/db -database postgresql://nyaweria_rw:supersecret123@db:5432/nyaweria_dev?sslmode=disable up
+
+volumes:
+  db-data:

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/bickyeric/nyaweria/entity"
@@ -13,6 +14,7 @@ type User interface {
 
 type user struct {
 	users map[string]*entity.User
+	db    *sql.DB
 }
 
 func (u *user) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
@@ -24,8 +26,9 @@ func (u *user) GetByUsername(ctx context.Context, username string) (*entity.User
 	return user, nil
 }
 
-func NewUser() User {
+func NewUser(db *sql.DB) User {
 	return &user{
+		db: db,
 		users: map[string]*entity.User{
 			"bickyeric": {
 				Username:       "bickyeric",

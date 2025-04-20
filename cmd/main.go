@@ -1,15 +1,31 @@
 package main
 
 import (
+	"database/sql"
+	"log"
+
 	"github.com/bickyeric/nyaweria/handler"
 	"github.com/bickyeric/nyaweria/repository"
 	"github.com/bickyeric/nyaweria/usecase"
 	"github.com/bickyeric/nyaweria/view"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	_ "github.com/lib/pq" // add this
 )
 
 func main() {
+	connStr := "postgresql://nyaweria_rw:supersecret123@db:5432/nyaweria_dev?sslmode=disable"
+	// Connect to database
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -18,7 +34,7 @@ func main() {
 
 	e.Renderer = view.NewTemplateRenderer()
 
-	userRepository := repository.NewUser()
+	userRepository := repository.NewUser(db)
 
 	notificationUsecase := usecase.NewNotification()
 	donateUsecase := usecase.NewDonate(notificationUsecase)

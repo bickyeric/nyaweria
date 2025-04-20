@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/hegedustibor/htgo-tts v0.0.0-20240912200108-467b3e535435
 	github.com/labstack/echo v3.3.10+incompatible
+	github.com/lib/pq v1.10.9
 )
 
 require (
