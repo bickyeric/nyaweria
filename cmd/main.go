@@ -35,9 +35,10 @@ func main() {
 	e.Renderer = view.NewTemplateRenderer()
 
 	userRepository := repository.NewUser(db)
+	donateRepository := repository.NewDonate(db)
 
 	notificationUsecase := usecase.NewNotification()
-	donateUsecase := usecase.NewDonate(notificationUsecase)
+	donateUsecase := usecase.NewDonate(notificationUsecase, userRepository, donateRepository)
 	userUsecase := usecase.NewUser(userRepository)
 
 	donateHandler := handler.NewDonateHandler(donateUsecase, userUsecase)
@@ -47,6 +48,7 @@ func main() {
 	e.GET("/:streamer_username", donateHandler.Index)
 	e.POST("/donate", donateHandler.Donate)
 	e.GET("/widgets/alert", widgetHandler.Alert)
+	e.GET("/widgets/leaderboard", widgetHandler.Leaderboard)
 	e.GET("/ws", websocketHandler.Handle)
 
 	e.Logger.Fatal(e.Start(":8080"))

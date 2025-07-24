@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 
 	"github.com/bickyeric/nyaweria/entity"
+	"github.com/doug-martin/goqu/v9"
 )
 
 type User interface {
@@ -13,35 +13,30 @@ type User interface {
 }
 
 type user struct {
-	users map[string]*entity.User
-	db    *sql.DB
+	db *sql.DB
 }
 
 func (u *user) GetByUsername(ctx context.Context, username string) (*entity.User, error) {
-	user, ok := u.users[username]
-	if !ok {
-		return nil, errors.New("user not found")
+	query, args, err := goqu.From("users").
+		Select("id", "username", "name", "profile_picture", "description").
+		Where(goqu.C("username").Eq(username)).
+		ToSQL()
+	if err != nil {
+		return nil, err
 	}
 
-	return user, nil
+	var user entity.User
+
+	row := u.db.QueryRow(query, args...)
+	if err = row.Scan(&user.ID, &user.Username, &user.Name, &user.ProfilePicture, &user.Description); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 func NewUser(db *sql.DB) User {
 	return &user{
 		db: db,
-		users: map[string]*entity.User{
-			"bickyeric": {
-				Username:       "bickyeric",
-				Name:           "Bicky Eric Kantona",
-				ProfilePicture: "https://flowbite.com/docs/images/people/profile-picture-3.jpg",
-				Description:    "Programmer Magang",
-			},
-			"streamertesting": {
-				Username:       "streamertesting",
-				Name:           "Streamer Testing",
-				ProfilePicture: "https://img.icons8.com/?size=200&id=44442&format=png&color=000000",
-				Description:    "Programmer Golang",
-			},
-		},
 	}
 }
