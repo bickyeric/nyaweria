@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/bickyeric/nyaweria/entity"
 	"github.com/bickyeric/nyaweria/repository"
@@ -24,7 +25,22 @@ type donate struct {
 }
 
 func (u *donate) TopDonors(ctx context.Context, username string) ([]*entity.DonationSummary, error) {
-	panic("unimplemented")
+	user, err := u.userRepo.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	summaries, err := u.donateRepo.Summary(ctx, repository.SummaryRequest{
+		RecipientID: user.ID,
+		Limit:       5,
+		EndTime:     time.Now(),
+		StartTime:   time.Now().Add(-24 * time.Hour),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return summaries, nil
 }
 
 func (u *donate) Donate(ctx context.Context, donation entity.Donation) error {

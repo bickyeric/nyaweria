@@ -10,4 +10,7 @@ type Donation struct {
 	RecipientID string
 }
 
-type DonationSummary struct{}
+type DonationSummary struct {
+	Sender string `json:"sender"`
+	Sum    int    `json:"sum"`
+}

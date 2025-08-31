@@ -18,7 +18,7 @@ type SummaryRequest struct {
 
 type Donate interface {
 	Create(ctx context.Context, record *entity.Donation) error
-	Summary(ctx context.Context, req SummaryRequest) (entity.DonationSummary, error)
+	Summary(ctx context.Context, req SummaryRequest) ([]*entity.DonationSummary, error)
 }
 
 type donate struct {
@@ -26,8 +26,35 @@ type donate struct {
 }
 
 // Summary implements Donate.
-func (u *donate) Summary(ctx context.Context, req SummaryRequest) (entity.DonationSummary, error) {
-	panic("unimplemented")
+func (u *donate) Summary(ctx context.Context, req SummaryRequest) ([]*entity.DonationSummary, error) {
+	query, args, err := goqu.From("donations").
+		Select("sender", goqu.SUM(goqu.C("amount").Cast("INTEGER")).As("sum")).
+		Where(goqu.C("created_at").Gte(req.StartTime), goqu.C("created_at").Lte(req.EndTime), goqu.C("recipient_id").Eq(req.RecipientID)).
+		GroupBy("sender").
+		Order(goqu.I("sum").Desc()).
+		Limit(uint(req.Limit)).
+		ToSQL()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := u.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var summaries []*entity.DonationSummary
+	for rows.Next() {
+		var summary entity.DonationSummary
+
+		if err := rows.Scan(&summary.Sender, &summary.Sum); err != nil {
+			return nil, err
+		}
+
+		summaries = append(summaries, &summary)
+	}
+
+	return summaries, nil
 }
 
 func (u *donate) Create(ctx context.Context, record *entity.Donation) error {

@@ -51,5 +51,7 @@ func main() {
 	e.GET("/widgets/leaderboard", widgetHandler.Leaderboard)
 	e.GET("/ws", websocketHandler.Handle)
 
+	e.GET("/widgets/data/leaderboard", donateHandler.Leaderboard)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }

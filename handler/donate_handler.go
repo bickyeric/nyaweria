@@ -44,6 +44,15 @@ func (h *DonateHandler) Donate(c echo.Context) error {
 	return c.JSON(http.StatusOK, entity.ResponseBody{Message: "success giving donation"})
 }
 
+func (h *DonateHandler) Leaderboard(c echo.Context) error {
+	summaries, err := h.donateUsecase.TopDonors(c.Request().Context(), c.FormValue("username"))
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, summaries)
+}
+
 func NewDonateHandler(donateUsecase usecase.Donate, userUsecase usecase.User) *DonateHandler {
 	return &DonateHandler{
 		donateUsecase: donateUsecase,

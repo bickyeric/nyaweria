@@ -22,7 +22,6 @@ func (*WidgetHandler) Alert(c echo.Context) error {
 }
 
 func (*WidgetHandler) Leaderboard(c echo.Context) error {
-	
 	content, err := os.ReadFile("public/leaderboard.html")
 	if err != nil {
 		http.Error(c.Response().Writer, "Could not open requested file", http.StatusInternalServerError)
