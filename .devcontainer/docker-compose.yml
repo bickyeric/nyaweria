@@ -26,17 +26,5 @@ services:
       POSTGRES_PASSWORD: supersecret123
       POSTGRES_DB: nyaweria_dev
 
-  db-migrate:
-    image: migrate/migrate
-    depends_on:
-      db:
-        condition: service_healthy
-    volumes:
-      - type: bind
-        source: ../db
-        target: /db
-    entrypoint: migrate
-    command: -source file:/db -database postgresql://nyaweria_rw:supersecret123@db:5432/nyaweria_dev?sslmode=disable up
-
 volumes:
   db-data:

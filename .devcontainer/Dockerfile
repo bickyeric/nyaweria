@@ -1,4 +1,8 @@
-FROM golang:1.23
+FROM migrate/migrate AS mig
+
+FROM golang:1.25
+
+COPY --from=mig /usr/local/bin/migrate /usr/local/bin/migrate
 
 RUN apt update && apt install -y libasound2-dev
 
