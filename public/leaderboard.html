@@ -31,7 +31,7 @@
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="leaderboard-table">
             <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
               <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                 1
@@ -71,6 +71,46 @@
 
     </div>
   </div>
+
+  <script type="text/javascript">
+
+    var username = "{{index . "username"}}"
+    var loc = window.location;
+
+    var leaderboardTable = document.getElementById("leaderboard-table");
+
+    function clearTable() {
+      while (leaderboardTable.children.length > 0) {
+        leaderboardTable.children.item(0).remove();
+      }
+    }
+
+    function refreshData() {
+      fetch(`http://${loc.host}/api/donate/summaries?username=${username}`, {})
+                .then((response) => response.json())
+                .then((response) => {
+                  clearTable();
+                  response.data.forEach((element, index) => {
+                    var row = leaderboardTable.insertRow(-1);
+                    var cell1 = row.insertCell(-1);
+                    cell1.innerHTML = index+1;
+                    cell1.classList.add("px-6","py-4","font-medium","text-gray-900","whitespace-nowrap","dark:text-white")
+
+                    var cell2 = row.insertCell(-1);
+                    cell2.innerHTML = element.sender;
+                    cell2.classList.add("px-6","py-4")
+
+                    var cell3 = row.insertCell(-1);
+                    cell3.innerHTML = element.sum;
+                    cell3.classList.add("px-6","py-4")
+                  });
+                });
+
+      setTimeout(refreshData, 5000)
+    }
+
+    refreshData()
+  </script>
 </body>
 
 </html>

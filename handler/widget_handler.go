@@ -22,14 +22,11 @@ func (*WidgetHandler) Alert(c echo.Context) error {
 }
 
 func (*WidgetHandler) Leaderboard(c echo.Context) error {
-	content, err := os.ReadFile("public/leaderboard.html")
-	if err != nil {
-		http.Error(c.Response().Writer, "Could not open requested file", http.StatusInternalServerError)
-		return nil
-	}
+	username := c.QueryParam("username")
 
-	fmt.Fprintf(c.Response().Writer, "%s", content)
-	return nil
+	return c.Render(http.StatusOK, "leaderboard.html", map[string]string{
+		"username": username,
+	})
 }
 
 func NewWidgetHandler() *WidgetHandler {

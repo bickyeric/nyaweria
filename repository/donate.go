@@ -43,7 +43,7 @@ func (u *donate) Summary(ctx context.Context, req SummaryRequest) ([]*entity.Don
 		return nil, err
 	}
 
-	var summaries []*entity.DonationSummary
+	summaries := []*entity.DonationSummary{}
 	for rows.Next() {
 		var summary entity.DonationSummary
 

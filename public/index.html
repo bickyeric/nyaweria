@@ -46,7 +46,7 @@
         app.doSendMessage = function () {
             var loc = window.location;
 
-            fetch(`http://${loc.host}/donate`, {
+            fetch(`http://${loc.host}/api/donate`, {
                 method: "POST",
                 body: JSON.stringify({
                     from: document.querySelector('.username').innerText,

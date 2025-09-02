@@ -2,8 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/bickyeric/nyaweria/entity"
+	"github.com/bickyeric/nyaweria/errors"
 	"github.com/bickyeric/nyaweria/usecase"
 	"github.com/labstack/echo"
 )
@@ -44,13 +47,34 @@ func (h *DonateHandler) Donate(c echo.Context) error {
 	return c.JSON(http.StatusOK, entity.ResponseBody{Message: "success giving donation"})
 }
 
-func (h *DonateHandler) Leaderboard(c echo.Context) error {
-	summaries, err := h.donateUsecase.TopDonors(c.Request().Context(), c.FormValue("username"))
+func (h *DonateHandler) Summary(c echo.Context) error {
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+
+	startTime, _ := time.Parse(time.RFC3339, c.QueryParam("start_time"))
+
+	endTime, _ := time.Parse(time.RFC3339, c.QueryParam("end_time"))
+
+	topDonorRequest := usecase.TopDonorsRequest{
+		Username:  c.QueryParam("username"),
+		Limit:     limit,
+		StartTime: startTime,
+		EndTime:   endTime,
+	}
+
+	summaries, err := h.donateUsecase.Summary(c.Request().Context(), topDonorRequest)
 	if err != nil {
+		if ed, ok := err.(errors.ErrorDetail); ok {
+			responseError := entity.ResponseBody{Errors: []errors.ErrorDetail{ed}}
+			return c.JSON(http.StatusBadRequest, responseError)
+		}
 		return err
 	}
 
-	return c.JSON(http.StatusOK, summaries)
+	responseBody := entity.ResponseBody{
+		Data: summaries,
+	}
+
+	return c.JSON(http.StatusOK, responseBody)
 }
 
 func NewDonateHandler(donateUsecase usecase.Donate, userUsecase usecase.User) *DonateHandler {

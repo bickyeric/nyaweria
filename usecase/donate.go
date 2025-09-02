@@ -6,15 +6,22 @@ import (
 	"time"
 
 	"github.com/bickyeric/nyaweria/entity"
+	liberr "github.com/bickyeric/nyaweria/errors"
 	"github.com/bickyeric/nyaweria/repository"
 	"github.com/google/uuid"
 	htgotts "github.com/hegedustibor/htgo-tts"
 	"github.com/hegedustibor/htgo-tts/voices"
 )
 
+type TopDonorsRequest struct {
+	Username           string
+	Limit              int
+	StartTime, EndTime time.Time
+}
+
 type Donate interface {
 	Donate(ctx context.Context, donation entity.Donation) error
-	TopDonors(ctx context.Context, username string) ([]*entity.DonationSummary, error)
+	Summary(ctx context.Context, req TopDonorsRequest) ([]*entity.DonationSummary, error)
 }
 
 type donate struct {
@@ -24,17 +31,33 @@ type donate struct {
 	notificationUsecase Notification
 }
 
-func (u *donate) TopDonors(ctx context.Context, username string) ([]*entity.DonationSummary, error) {
-	user, err := u.userRepo.GetByUsername(ctx, username)
+func (u *donate) Summary(ctx context.Context, req TopDonorsRequest) ([]*entity.DonationSummary, error) {
+	if req.Username == "" {
+		return nil, liberr.UsernameEmptyErr
+	}
+
+	if req.Limit < 1 {
+		req.Limit = 5
+	}
+
+	if req.StartTime.IsZero() {
+		req.StartTime = time.Now().AddDate(0, 0, -1)
+	}
+
+	if req.EndTime.IsZero() {
+		req.EndTime = time.Now()
+	}
+
+	user, err := u.userRepo.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	summaries, err := u.donateRepo.Summary(ctx, repository.SummaryRequest{
 		RecipientID: user.ID,
-		Limit:       5,
-		EndTime:     time.Now(),
-		StartTime:   time.Now().Add(-24 * time.Hour),
+		Limit:       req.Limit,
+		EndTime:     req.EndTime,
+		StartTime:   req.StartTime,
 	})
 	if err != nil {
 		return nil, err

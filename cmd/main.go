@@ -46,12 +46,12 @@ func main() {
 	websocketHandler := handler.NewWebsocketHandler(notificationUsecase)
 
 	e.GET("/:streamer_username", donateHandler.Index)
-	e.POST("/donate", donateHandler.Donate)
 	e.GET("/widgets/alert", widgetHandler.Alert)
 	e.GET("/widgets/leaderboard", widgetHandler.Leaderboard)
 	e.GET("/ws", websocketHandler.Handle)
 
-	e.GET("/widgets/data/leaderboard", donateHandler.Leaderboard)
+	e.POST("/api/donate", donateHandler.Donate)
+	e.GET("/api/donate/summaries", donateHandler.Summary)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
