@@ -26,5 +26,8 @@ services:
       POSTGRES_PASSWORD: supersecret123
       POSTGRES_DB: nyaweria_dev
 
+  redis:
+    image: redis:7.2.2-alpine
+
 volumes:
   db-data:

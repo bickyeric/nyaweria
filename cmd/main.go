@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/bickyeric/nyaweria/handler"
 	"github.com/bickyeric/nyaweria/repository"
@@ -11,6 +14,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq" // add this
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -26,6 +30,18 @@ func main() {
 		panic(err)
 	}
 
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // No password set
+		DB:       0,  // Use default DB
+		Protocol: 2,  // Connection protocol
+	})
+
+	_, err = redisClient.Ping(context.Background()).Result()
+	if err != nil {
+		panic(err)
+	}
+
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
@@ -37,7 +53,7 @@ func main() {
 	userRepository := repository.NewUser(db)
 	donateRepository := repository.NewDonate(db)
 
-	notificationUsecase := usecase.NewNotification()
+	notificationUsecase := usecase.NewNotification(redisClient)
 	donateUsecase := usecase.NewDonate(notificationUsecase, userRepository, donateRepository)
 	userUsecase := usecase.NewUser(userRepository)
 
@@ -53,5 +69,9 @@ func main() {
 	e.POST("/api/donate", donateHandler.Donate)
 	e.GET("/api/donate/summaries", donateHandler.Summary)
 
-	e.Logger.Fatal(e.Start(":8080"))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", port)))
 }

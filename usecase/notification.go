@@ -2,23 +2,30 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/bickyeric/nyaweria/entity"
 	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
 )
 
 type Notification interface {
-	Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketClient, error)
-	Delete(ctx context.Context, username string, conn *entity.WebSocketClient)
+	Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketPubsubClient, error)
+	Delete(ctx context.Context, username string, conn *entity.WebSocketPubsubClient)
 	Send(context.Context, entity.Donation) error
 }
 
 type notification struct {
-	hubs map[string]*entity.Hub
+	redisClient *redis.Client
+	hubs        map[string]*entity.Hub
 }
 
-func (u *notification) Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketClient, error) {
-	currentConn := entity.NewWebSocketClient(ws)
+func (u *notification) Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketPubsubClient, error) {
+	pubsubChannel := fmt.Sprintf("alert_%s", username)
+	pubsub := u.redisClient.Subscribe(ctx, pubsubChannel)
+
+	currentConn := entity.NewWebSocketPubsubClient(ws, pubsub)
 	if hub, ok := u.hubs[username]; ok {
 		hub.Register <- &currentConn
 	} else {
@@ -32,24 +39,29 @@ func (u *notification) Add(ctx context.Context, ws *websocket.Conn, username str
 	return &currentConn, nil
 }
 
-func (u *notification) Delete(ctx context.Context, username string, conn *entity.WebSocketClient) {
+func (u *notification) Delete(ctx context.Context, username string, conn *entity.WebSocketPubsubClient) {
 	if hub, ok := u.hubs[username]; ok {
 		hub.Unregister <- conn
 	}
 }
 
 func (u *notification) Send(ctx context.Context, donation entity.Donation) error {
-	hub, ok := u.hubs[donation.To]
-	if !ok {
-		return nil
+	jsonPayload, err := json.Marshal(donation)
+	if err != nil {
+		return err
 	}
 
-	hub.Broadcast <- donation
+	pubsubChannel := fmt.Sprintf("alert_%s", donation.To)
+	err = u.redisClient.Publish(ctx, pubsubChannel, string(jsonPayload)).Err()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func NewNotification() Notification {
+func NewNotification(redisClient *redis.Client) Notification {
 	return &notification{
-		hubs: map[string]*entity.Hub{},
+		hubs:        map[string]*entity.Hub{},
+		redisClient: redisClient,
 	}
 }
