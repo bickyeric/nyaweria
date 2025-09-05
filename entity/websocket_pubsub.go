@@ -2,8 +2,7 @@ package entity
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -46,6 +45,7 @@ func (c *WebSocketPubsubClient) HandleIO() {
 }
 
 func (c *WebSocketPubsubClient) Close() {
+	slog.Info("closing websocket and pubsub connection")
 	c.websocketConnection.Close()
 	c.pubsubConnection.Close()
 }
@@ -55,19 +55,21 @@ func (c *WebSocketPubsubClient) readPubSub(wg *sync.WaitGroup) {
 		wg.Done()
 	}()
 
+	slog.Info("pubsub connection opened")
+
 	for msg := range c.pubsubConnection.Channel() {
 		var donation Donation
 
 		err := json.Unmarshal([]byte(msg.Payload), &donation)
 		if err != nil {
-			log.Println("error unmarshal payload: ", err)
+			slog.Error("error unmarshal payload", slog.String("error", err.Error()))
 			continue
 		}
 
 		c.notify(donation)
 	}
 
-	fmt.Println("pubsub connection closed")
+	slog.Info("pubsub connection closed")
 }
 
 func (c *WebSocketPubsubClient) writePump(wg *sync.WaitGroup) {
@@ -80,6 +82,7 @@ func (c *WebSocketPubsubClient) writePump(wg *sync.WaitGroup) {
 	for range ticker.C {
 		c.websocketConnection.SetWriteDeadline(time.Now().Add(writeWait))
 		if err := c.websocketConnection.WriteMessage(websocket.PingMessage, nil); err != nil {
+			slog.Error("error writePump", slog.String("error", err.Error()))
 			c.Close()
 			return
 		}
@@ -99,7 +102,7 @@ func (c *WebSocketPubsubClient) readPump(wg *sync.WaitGroup) {
 		_, _, err := c.websocketConnection.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				slog.Error("failed read websocket message", slog.String("error", err.Error()))
 			}
 			c.Close()
 			break
@@ -110,7 +113,7 @@ func (c *WebSocketPubsubClient) readPump(wg *sync.WaitGroup) {
 func (c *WebSocketPubsubClient) notify(donation Donation) {
 	err := c.websocketConnection.WriteJSON(donation)
 	if err != nil {
-		log.Println(err)
+		slog.Error("error notify websocket", slog.String("error", err.Error()))
 	}
 }
 
@@ -139,8 +142,10 @@ func (h *Hub) Run() {
 	for {
 		select {
 		case client := <-h.Register:
+			slog.Info("registering")
 			h.clients[client] = true
 		case client := <-h.Unregister:
+			slog.Info("unregistering")
 			delete(h.clients, client)
 		}
 	}

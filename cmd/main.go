@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/bickyeric/nyaweria/handler"
@@ -18,11 +18,15 @@ import (
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	connStr := "postgresql://nyaweria_rw:supersecret123@db:5432/nyaweria_dev?sslmode=disable"
 	// Connect to database
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("database connection fail", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 
 	err = db.Ping()

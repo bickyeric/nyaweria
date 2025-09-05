@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/bickyeric/nyaweria/entity"
@@ -67,7 +68,7 @@ func (u *donate) Summary(ctx context.Context, req TopDonorsRequest) ([]*entity.D
 }
 
 func (u *donate) Donate(ctx context.Context, donation entity.Donation) error {
-	fmt.Printf("receive donation: %v\n", donation)
+	slog.Info("donation received", slog.String("from", donation.From), slog.String("to", donation.To), slog.String("message", donation.Message))
 
 	recipient, err := u.userRepo.GetByUsername(ctx, donation.To)
 	if err != nil {
