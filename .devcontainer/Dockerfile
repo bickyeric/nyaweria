@@ -8,4 +8,5 @@ RUN apt update && apt install -y libasound2-dev
 
 RUN go install golang.org/x/tools/gopls@latest && \
     go install honnef.co/go/tools/cmd/staticcheck@latest && \
-    go install github.com/go-delve/delve/cmd/dlv@latest
+    go install github.com/go-delve/delve/cmd/dlv@latest && \
+    go install go.uber.org/mock/mockgen@v0.6.0

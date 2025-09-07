@@ -16,6 +16,7 @@ type SummaryRequest struct {
 	StartTime, EndTime time.Time
 }
 
+//go:generate mockgen -source=donate.go -destination=mock/donate.go
 type Donate interface {
 	Create(ctx context.Context, record *entity.Donation) error
 	Summary(ctx context.Context, req SummaryRequest) ([]*entity.DonationSummary, error)

@@ -10,6 +10,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+//go:generate mockgen -source=notification.go -destination=mock/notification.go
 type Notification interface {
 	Add(ctx context.Context, ws *websocket.Conn, username string) (*entity.WebSocketPubsubClient, error)
 	Delete(ctx context.Context, username string, conn *entity.WebSocketPubsubClient)

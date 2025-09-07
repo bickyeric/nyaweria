@@ -8,6 +8,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
+//go:generate mockgen -source=user.go -destination=mock/user.go
 type User interface {
 	GetByUsername(ctx context.Context, username string) (*entity.User, error)
 }
