@@ -26,3 +26,15 @@ code nyaweria
 ```
 
 3. run the `Dev Containers: Reopen in Container` command from the vscode Command Palette (`F1`)
+4. run the `Terminal: Create New Terminal in Editor Area` command from the vscode Command Palette (`F1`)
+
+5. copy sample file
+
+```shell
+cp env.sample.yaml env.yaml
+```
+
+6. run nyaweria
+```shell
+go run cmd/main.go
+```

@@ -2,6 +2,7 @@ package usecase_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
@@ -20,18 +21,20 @@ type DonateSuite struct {
 
 func (s *DonateSuite) TestSummaryEmptyUsername() {
 	ctrl := gomock.NewController(s.T())
+	audioDir := os.TempDir()
 
 	mockNotification := mock_usecase.NewMockNotification(ctrl)
 	mockUserRepo := mock_repository.NewMockUser(ctrl)
 	mockDonateRepo := mock_repository.NewMockDonate(ctrl)
 
-	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo)
+	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo, audioDir)
 	_, err := donateUsecase.Summary(context.Background(), usecase.TopDonorsRequest{})
 	s.ErrorContains(err, "username cannot be empty")
 }
 
 func (s *DonateSuite) TestSummarySuccess() {
 	ctrl := gomock.NewController(s.T())
+	audioDir := os.TempDir()
 
 	mockNotification := mock_usecase.NewMockNotification(ctrl)
 	mockUserRepo := mock_repository.NewMockUser(ctrl)
@@ -52,7 +55,7 @@ func (s *DonateSuite) TestSummarySuccess() {
 		},
 	}, nil)
 
-	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo)
+	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo, audioDir)
 	summaries, err := donateUsecase.Summary(context.Background(), usecase.TopDonorsRequest{
 		Username:  "bickyeric",
 		Limit:     5,
@@ -66,6 +69,7 @@ func (s *DonateSuite) TestSummarySuccess() {
 
 func (s *DonateSuite) TestDonateSuccess() {
 	ctrl := gomock.NewController(s.T())
+	audioDir := os.TempDir()
 
 	mockNotification := mock_usecase.NewMockNotification(ctrl)
 	mockUserRepo := mock_repository.NewMockUser(ctrl)
@@ -75,7 +79,7 @@ func (s *DonateSuite) TestDonateSuccess() {
 	mockUserRepo.EXPECT().GetByUsername(context.Background(), "bickyeric").Return(&entity.User{ID: "123"}, nil)
 	mockNotification.EXPECT().Send(context.Background(), gomock.Any()).Return(nil)
 
-	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo)
+	donateUsecase := usecase.NewDonate(mockNotification, mockUserRepo, mockDonateRepo, audioDir)
 	err := donateUsecase.Donate(context.Background(), entity.Donation{
 		From:    "user 2",
 		To:      "bickyeric",

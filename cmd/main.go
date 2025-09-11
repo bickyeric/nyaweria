@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/bickyeric/nyaweria/config"
 	"github.com/bickyeric/nyaweria/handler"
 	"github.com/bickyeric/nyaweria/repository"
 	"github.com/bickyeric/nyaweria/usecase"
@@ -21,9 +22,14 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	connStr := "postgresql://nyaweria_rw:supersecret123@db:5432/nyaweria_dev?sslmode=disable"
+	appConfig, err := config.Load()
+	if err != nil {
+		slog.Error("loading configuration fail", slog.String("error", err.Error()))
+		os.Exit(1)
+	}
+
 	// Connect to database
-	db, err := sql.Open("postgres", connStr)
+	db, err := sql.Open("postgres", appConfig.Database.URI())
 	if err != nil {
 		slog.Error("database connection fail", slog.String("error", err.Error()))
 		os.Exit(1)
@@ -35,10 +41,10 @@ func main() {
 	}
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "redis:6379",
-		Password: "", // No password set
-		DB:       0,  // Use default DB
-		Protocol: 2,  // Connection protocol
+		Addr:     appConfig.Redis.Host,
+		Password: appConfig.Redis.Password,
+		DB:       appConfig.Redis.DB,
+		Protocol: appConfig.Redis.Protocol,
 	})
 
 	_, err = redisClient.Ping(context.Background()).Result()
@@ -50,7 +56,7 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
-	e.Static("public/audio", "public/audio")
+	e.Static("public/audio", appConfig.AudioDirectory)
 
 	e.Renderer = view.NewTemplateRenderer()
 
@@ -58,7 +64,7 @@ func main() {
 	donateRepository := repository.NewDonate(db)
 
 	notificationUsecase := usecase.NewNotification(redisClient)
-	donateUsecase := usecase.NewDonate(notificationUsecase, userRepository, donateRepository)
+	donateUsecase := usecase.NewDonate(notificationUsecase, userRepository, donateRepository, appConfig.AudioDirectory)
 	userUsecase := usecase.NewUser(userRepository)
 
 	donateHandler := handler.NewDonateHandler(donateUsecase, userUsecase)

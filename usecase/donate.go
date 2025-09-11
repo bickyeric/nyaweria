@@ -97,11 +97,11 @@ func (u *donate) Donate(ctx context.Context, donation entity.Donation) error {
 	return u.notificationUsecase.Send(ctx, donation)
 }
 
-func NewDonate(notificationUsecase Notification, userRepo repository.User, donateRepo repository.Donate) Donate {
+func NewDonate(notificationUsecase Notification, userRepo repository.User, donateRepo repository.Donate, audioDirectory string) Donate {
 	return &donate{
 		userRepo:            userRepo,
 		donateRepo:          donateRepo,
-		speech:              htgotts.Speech{Folder: "public/audio", Language: voices.Indonesian},
+		speech:              htgotts.Speech{Folder: audioDirectory, Language: voices.Indonesian},
 		notificationUsecase: notificationUsecase,
 	}
 }
