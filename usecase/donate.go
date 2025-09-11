@@ -64,6 +64,7 @@ func (u *donate) Summary(ctx context.Context, req TopDonorsRequest) ([]*entity.D
 		return nil, err
 	}
 
+	summaries = nil
 	return summaries, nil
 }
 
