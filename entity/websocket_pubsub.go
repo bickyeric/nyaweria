@@ -46,8 +46,13 @@ func (c *WebSocketPubsubClient) HandleIO() {
 
 func (c *WebSocketPubsubClient) Close() {
 	slog.Info("closing websocket and pubsub connection")
-	c.websocketConnection.Close()
-	c.pubsubConnection.Close()
+	if err := c.websocketConnection.Close(); err != nil {
+		slog.Error("error closing websocket", slog.String("error", err.Error()))
+	}
+
+	if err := c.pubsubConnection.Close(); err != nil {
+		slog.Error("error closing pubsub", slog.String("error", err.Error()))
+	}
 }
 
 func (c *WebSocketPubsubClient) readPubSub(wg *sync.WaitGroup) {
@@ -80,7 +85,11 @@ func (c *WebSocketPubsubClient) writePump(wg *sync.WaitGroup) {
 	}()
 
 	for range ticker.C {
-		c.websocketConnection.SetWriteDeadline(time.Now().Add(writeWait))
+		if err := c.websocketConnection.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+			slog.Error("error writePump", slog.String("error", err.Error()))
+			c.Close()
+			return
+		}
 		if err := c.websocketConnection.WriteMessage(websocket.PingMessage, nil); err != nil {
 			slog.Error("error writePump", slog.String("error", err.Error()))
 			c.Close()
@@ -95,8 +104,14 @@ func (c *WebSocketPubsubClient) readPump(wg *sync.WaitGroup) {
 	}()
 
 	c.websocketConnection.SetReadLimit(maxMessageSize)
-	c.websocketConnection.SetReadDeadline(time.Now().Add(pongWait))
-	c.websocketConnection.SetPongHandler(func(s string) error { c.websocketConnection.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	if err := c.websocketConnection.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		slog.Error("error readPump", slog.String("error", err.Error()))
+		c.Close()
+		return
+	}
+	c.websocketConnection.SetPongHandler(func(s string) error {
+		return c.websocketConnection.SetReadDeadline(time.Now().Add(pongWait))
+	})
 
 	for {
 		_, _, err := c.websocketConnection.ReadMessage()

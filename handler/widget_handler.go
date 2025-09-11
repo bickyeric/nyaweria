@@ -17,8 +17,8 @@ func (*WidgetHandler) Alert(c echo.Context) error {
 		return nil
 	}
 
-	fmt.Fprintf(c.Response().Writer, "%s", content)
-	return nil
+	_, err = fmt.Fprintf(c.Response().Writer, "%s", content)
+	return err
 }
 
 func (*WidgetHandler) Leaderboard(c echo.Context) error {

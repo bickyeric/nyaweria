@@ -1,14 +1,14 @@
 package handler
 
 import (
+	"log/slog"
+
 	"github.com/bickyeric/nyaweria/usecase"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo"
 )
 
-var (
-	upgrader = websocket.Upgrader{}
-)
+var upgrader = websocket.Upgrader{}
 
 type WebsocketHandler struct {
 	notification usecase.Notification
@@ -19,7 +19,11 @@ func (h *WebsocketHandler) Handle(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	defer ws.Close()
+	defer func() {
+		if err := ws.Close(); err != nil {
+			slog.Error("error closing websocket", slog.String("error", err.Error()))
+		}
+	}()
 
 	username := c.Request().URL.Query().Get("username")
 	websocketConnection, err := h.notification.Add(c.Request().Context(), ws, username)
