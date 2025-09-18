@@ -86,7 +86,7 @@ func (s *DonateSuite) TestDonateSuccess() {
 		Amount:  "125000",
 		Message: "halo testing bang",
 	})
-	s.Error(err)
+	s.NoError(err)
 }
 
 func TestDonateSuite(t *testing.T) {
