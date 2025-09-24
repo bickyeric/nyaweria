@@ -1,5 +1,5 @@
 ## compile project
-FROM golang:1.25 as build
+FROM golang:1.25 AS build
 
 RUN apt update && apt install -y libasound2-dev
 
