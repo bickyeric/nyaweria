@@ -53,6 +53,6 @@ jobs:
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ghcr.io/bickyeric/nyaweria:${GITHUB_SHA}
     - name: Login Registry
-      run: echo ${REGISTRY_PASSWORD} | docker login ghcr.io -u bickyeric --password-stdin
+      run: echo ${{ vars.REGISTRY_PASSWORD}} | docker login ghcr.io -u bickyeric --password-stdin
     - name: Push the Docker image
       run: docker push ghcr.io/bickyeric/nyaweria:${GITHUB_SHA}
